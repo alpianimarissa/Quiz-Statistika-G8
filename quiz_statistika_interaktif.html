@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interaktif Statistika (Mean, Median, Modus) Kelas 8 SMP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Lexend -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Lexend', sans-serif;
+        }
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            padding: 0 4px;
+        }
+        .fraction-top {
+            border-bottom: 2px solid currentColor;
+            padding-bottom: 1px;
+        }
+        .fraction-bottom {
+            padding-top: 1px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation / Top Header -->
+    <header class="bg-indigo-900 text-white sticky top-0 z-40 shadow-md border-b border-indigo-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-400 text-indigo-950 p-2.5 rounded-xl shadow-inner font-black text-xl">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-bold tracking-tight font-heading leading-tight">Quiz Statistika Interaktif</h1>
+                        <p class="text-xs text-indigo-200">Matematika Kelas 8 SMP • Mean, Median, Modus</p>
+                    </div>
+                </div>
+                <!-- Mobile Navigation Toggle -->
+                <button onclick="toggleGridMobile()" class="md:hidden bg-indigo-800 hover:bg-indigo-700 p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-indigo-600">
+                    <i class="fa-solid fa-th-large"></i> Soal
+                </button>
+            </div>
+
+            <!-- Quiz Stats Pill -->
+            <div class="flex items-center gap-3 bg-indigo-950/80 px-4 py-2 rounded-xl border border-indigo-700/60 w-full md:w-auto justify-around">
+                <div class="text-center">
+                    <span class="text-[10px] uppercase text-indigo-300 font-semibold tracking-wider block">Terjawab</span>
+                    <span id="stat-answered" class="text-base font-bold text-amber-400 font-mono">0 / 30</span>
+                </div>
+                <div class="h-6 w-px bg-indigo-700"></div>
+                <div class="text-center">
+                    <span class="text-[10px] uppercase text-indigo-300 font-semibold tracking-wider block">Skor</span>
+                    <span id="stat-score" class="text-base font-bold text-emerald-400 font-mono">0</span>
+                </div>
+                <div class="h-6 w-px bg-indigo-700"></div>
+                <button onclick="showResetModal()" title="Ulangi Quiz Dari Awal" class="text-xs bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-indigo-950 h-1.5">
+            <div id="progress-bar" class="bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-300 h-1.5 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Left Drawer / Sidebar: Question Navigation Grid -->
+        <aside id="grid-sidebar" class="hidden md:block md:col-span-4 lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm h-fit sticky top-20">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-heading font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-grid-2 text-indigo-600"></i> Navigasi Soal
+                </h2>
+                <span id="grid-status-badge" class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">30 Soal</span>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="grid grid-cols-3 gap-1 mb-4 text-[11px] font-semibold bg-slate-100 p-1 rounded-xl">
+                <button onclick="filterGrid('all')" id="btn-filter-all" class="py-1 rounded-lg bg-white shadow-sm text-indigo-700 font-bold">Semua</button>
+                <button onclick="filterGrid('done')" id="btn-filter-done" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Diisi</button>
+                <button onclick="filterGrid('empty')" id="btn-filter-empty" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Belum</button>
+            </div>
+
+            <!-- Question Numbers Grid (1 - 30) -->
+            <div id="question-grid" class="grid grid-cols-5 gap-2 max-h-[380px] overflow-y-auto custom-scrollbar p-1">
+                <!-- Dynamically Generated Buttons -->
+            </div>
+
+            <!-- Legend -->
+            <div class="mt-5 pt-4 border-t border-slate-100 text-[11px] space-y-2 text-slate-500 font-medium">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> Benar
+                    <span class="w-3 h-3 rounded-md bg-rose-500 inline-block ml-2"></span> Salah
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-md bg-indigo-600 inline-block"></span> Soal Aktif
+                    <span class="w-3 h-3 rounded-md bg-slate-200 inline-block ml-2"></span> Belum Dijawab
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Panel: Question Display Card -->
+        <section class="md:col-span-8 lg:col-span-9 space-y-4">
+            
+            <!-- Toast Alert for Auto-Load Notification -->
+            <div id="toast-notify" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-sm animate-pop">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                    <strong>Data Tersimpan Dimuat:</strong> Jawaban dan progres kamu berhasil dipulihkan secara otomatis.
+                </span>
+                <button onclick="closeToast()" class="text-emerald-500 hover:text-emerald-700 font-bold"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Question Main Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 animate-pop relative">
+                
+                <!-- Category & Question Number Badge -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4 mb-6">
+                    <div class="flex items-center gap-2">
+                        <span id="q-number-badge" class="bg-indigo-600 text-white font-bold px-3 py-1 rounded-xl text-xs font-mono shadow-sm">
+                            Soal #1
+                        </span>
+                        <span id="q-category-badge" class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-semibold px-3 py-1 rounded-xl">
+                            Pemusatan Data
+                        </span>
+                    </div>
+
+                    <span id="q-status-text" class="text-xs font-semibold text-slate-400">
+                        <i class="fa-regular fa-clock"></i> Pilih salah satu jawaban
+                    </span>
+                </div>
+
+                <!-- Question Text -->
+                <div class="space-y-4 mb-6">
+                    <p id="q-text" class="text-base md:text-lg text-slate-800 font-medium leading-relaxed">
+                        Loading soal...
+                    </p>
+
+                    <!-- Table Container (If question has tabular data) -->
+                    <div id="q-table-container" class="hidden overflow-x-auto my-4 rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+                        <!-- Table rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Answer Options Grid (A, B, C, D) -->
+                <div id="options-container" class="grid grid-cols-1 gap-3">
+                    <!-- Option Buttons Rendered Dynamically -->
+                </div>
+
+                <!-- Immediate Explanation / Solution Box -->
+                <div id="explanation-box" class="hidden mt-6 bg-slate-50 border-l-4 border-indigo-500 p-5 rounded-r-xl space-y-2 animate-pop">
+                    <h3 class="font-heading font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> Pembahasan Lengkap:
+                    </h3>
+                    <div id="explanation-text" class="text-xs md:text-sm text-slate-600 leading-relaxed space-y-1">
+                        <!-- Explanation rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Footer Navigation Buttons -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mt-8 pt-6 border-t border-slate-100">
+                    <button onclick="prevQuestion()" id="btn-prev" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs md:text-sm font-semibold hover:bg-slate-100 transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="finishQuizConfirmation()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs md:text-sm font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-flag-checkered"></i> Selesai Kuis
+                        </button>
+                    </div>
+
+                    <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-semibold transition flex items-center gap-2 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                        Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-semibold text-slate-300">Quiz Interaktif Statistika • Kurikulum Merdeka Kelas 8 SMP</p>
+            <p class="text-slate-500">Data otomatis tersimpan di peramban. Dapat dikerjakan kapan saja tanpa kehilangan progres.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Modal: Reset Confirmation -->
+    <div id="modal-reset" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4 animate-pop">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold font-heading text-slate-800">Reset Semua Jawaban?</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Tindakan ini akan menghapus seluruh jawaban yang sudah kamu isi dan mengulang skor menjadi 0 dari soal nomor 1.
+            </p>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                    Batal
+                </button>
+                <button onclick="confirmResetQuiz()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 shadow-sm">
+                    Ya, Reset Kuis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal: Final Score Result -->
+    <div id="modal-result" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 md:p-8 shadow-2xl space-y-6 animate-pop text-center relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-100 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="space-y-2">
+                <div class="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    Hasil Akhir Kuis
+                </div>
+                <h3 class="text-2xl font-bold font-heading text-slate-800">Laporan Ringkasan Nilai</h3>
+                <p class="text-xs text-slate-500">Statistika: Mean, Median, Modus - Kelas 8 SMP</p>
+            </div>
+
+            <!-- Big Score Circle -->
+            <div class="my-4 flex justify-center">
+                <div class="w-32 h-32 rounded-full border-8 border-indigo-600 bg-indigo-50 flex flex-col items-center justify-center shadow-inner">
+                    <span id="final-score-val" class="text-4xl font-extrabold font-mono text-indigo-900">0</span>
+                    <span class="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">Skor Total</span>
+                </div>
+            </div>
+
+            <!-- Performance Badge Text -->
+            <div id="final-badge" class="bg-slate-50 border p-3 rounded-xl text-xs font-bold text-slate-700">
+                Pencapaian: -
+            </div>
+
+            <!-- Stat Breakdown Cards -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                    <span class="text-[10px] text-emerald-600 font-bold uppercase block">Benar</span>
+                    <span id="final-correct" class="text-lg font-bold text-emerald-800 font-mono">0</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl">
+                    <span class="text-[10px] text-rose-600 font-bold uppercase block">Salah</span>
+                    <span id="final-wrong" class="text-lg font-bold text-rose-800 font-mono">0</span>
+                </div>
+                <div class="bg-slate-100 border border-slate-200 p-3 rounded-xl">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase block">Kosong</span>
+                    <span id="final-empty" class="text-lg font-bold text-slate-700 font-mono">0</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button onclick="closeResultModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                    Tinjau Soal
+                </button>
+                <button onclick="confirmResetQuiz()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm">
+                    Coba Lagi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 30 Unique Questions for Grade 8 SMP Math - Mean, Median, Modus
+         * Options distribution: Completely randomized & non-patterned across A, B, C, D.
+         */
+        const quizQuestions = [
+            {
+                id: 1,
+                category: "Konsep Dasar",
+                question: "Manakah di antara pernyataan berikut yang paling tepat menjelaskan pengertian dari <strong>Mean</strong> dalam ukuran pemusatan data?",
+                options: [
+                    "Selisih antara nilai data terbesar dengan nilai data terkecil",
+                    "Nilai data yang terletak paling tengah setelah data diurutkan",
+                    "Wakil nilai data yang diperoleh dari jumlah seluruh nilai data dibagi banyaknya data",
+                    "Nilai data yang memiliki frekuensi kemunculan paling tinggi"
+                ],
+                correct: 2, // C
+                explanation: "<strong>Mean (Rata-rata)</strong> didefinisikan sebagai jumlah seluruh nilai data dibagi dengan banyaknya data (&xbar; = &Sigma;x / n)."
+            },
+            {
+                id: 2,
+                category: "Data Tunggal Ganjil",
+                question: "Diberikan sekumpulan data nilai tugas Matematika: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>4, 7, 5, 8, 9, 6, 5</span>. Nilai <strong>Median</strong> dari data tersebut adalah...",
+                options: ["6", "5,5", "5", "7"],
+                correct: 0, // A
+                explanation: "Langkah 1: Urutkan data dari terkecil &rarr; <strong>4, 5, 5, 6, 7, 8, 9</strong> (banyak data n = 7).<br>Langkah 2: Median adalah nilai tengah di urutan ke-(7+1)/2 = ke-4, yaitu <strong>6</strong>."
+            },
+            {
+                id: 3,
+                category: "Modus Tunggal",
+                question: "Tentukan <strong>Modus</strong> dari data ukuran sepatu siswa berikut: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>38, 40, 39, 38, 41, 38, 39, 42, 38, 40</span>!",
+                options: ["40", "39", "41", "38"],
+                correct: 3, // D
+                explanation: "Frekuensi kemunculan masing-masing ukuran:<br>• Ukuran 38 = 4 kali<br>• Ukuran 39 = 2 kali<br>• Ukuran 40 = 2 kali<br>Ukuran 38 muncul terbanyak, maka Modus = <strong>38</strong>."
+            },
+            {
+                id: 4,
+                category: "Mean Data Tunggal",
+                question: "Nilai ulangan harian 5 siswa adalah: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>12, 14, 15, 16, 18</span>. Berapakah nilai rata-rata (Mean) dari data tersebut?",
+                options: ["14", "15", "13", "14,5"],
+                correct: 1, // B
+                explanation: "Jumlah data (&Sigma;x) = 12 + 14 + 15 + 16 + 18 = 75.<br>Banyak data (n) = 5.<br>Mean = 75 ÷ 5 = <strong>15</strong>."
+            },
+            {
+                id: 5,
+                category: "Data Tunggal Genap",
+                question: "Hasil pencatatan suhu ruangan (&deg;C) selama 6 jam berturut-turut: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>22, 25, 20, 28, 24, 26</span>. Median dari suhu ruangan tersebut adalah...",
+                options: ["25 °C", "24 °C", "24,5 °C", "25,5 °C"],
+                correct: 2, // C
+                explanation: "Urutkan data: 20, 22, <strong>24, 25</strong>, 26, 28 (n = 6).<br>Dua nilai tengah berada di urutan ke-3 dan ke-4 yaitu 24 dan 25.<br>Median = (24 + 25) ÷ 2 = <strong>24,5 °C</strong>."
+            },
+            {
+                id: 6,
+                category: "Tabel Frekuensi",
+                question: "Perhatikan tabel frekuensi nilai kuis berikut:<br>Berapakah <strong>Modus</strong> dari nilai kuis siswa tersebut?",
+                table: {
+                    headers: ["Nilai", "50", "60", "70", "80", "90"],
+                    rows: [["Frekuensi (f)", "3", "6", "11", "8", "4"]]
+                },
+                options: ["11", "60", "80", "70"],
+                correct: 3, // D
+                explanation: "Modus adalah nilai dengan frekuensi tertinggi. Frekuensi tertinggi pada tabel adalah <strong>11</strong>, yang dimiliki oleh nilai <strong>70</strong>."
+            },
+            {
+                id: 7,
+                category: "Mean Tabel Frekuensi",
+                question: "Berdasarkan data tabel frekuensi nilai ulangan di bawah ini, hitunglah nilai <strong>Mean</strong>-nya!",
+                table: {
+                    headers: ["Nilai (x)", "6", "7", "8", "9"],
+                    rows: [["Frekuensi (f)", "4", "8", "5", "3"]]
+                },
+                options: ["7,35", "7,42", "7,50", "7,65"],
+                correct: 0, // A
+                explanation: "Hitung total (f &middot; x):<br>• (6 &times; 4) = 24<br>• (7 &times; 8) = 56<br>• (8 &times; 5) = 40<br>• (9 &times; 3) = 27<br>&Sigma;(f &middot; x) = 24 + 56 + 40 + 27 = 147.<br>&Sigma;f = 4 + 8 + 5 + 3 = 20.<br>Mean = 147 ÷ 20 = <strong>7,35</strong>."
+            },
+            {
+                id: 8,
+                category: "Aplikasi Tabel",
+                question: "Tabel berikut menunjukkan data berat badan (kg) sekelompok siswa:<br>Berapa banyak siswa yang memiliki berat badan <strong>di atas rata-rata</strong>?",
+                table: {
+                    headers: ["Berat (kg)", "38", "39", "40", "41"],
+                    rows: [["Frekuensi", "4", "6", "7", "3"]]
+                },
+                options: ["6 siswa", "10 siswa", "7 siswa", "13 siswa"],
+                correct: 1, // B
+                explanation: "Total &Sigma;f = 20. Total &Sigma;(f &middot; x) = (38&times;4) + (39&times;6) + (40&times;7) + (41&times;3) = 152 + 234 + 280 + 123 = 789.<br>Mean = 789 ÷ 20 = 39,45 kg.<br>Siswa di atas rata-rata (> 39,45 kg) adalah siswa berberat 40 kg (7 orang) + 41 kg (3 orang) = <strong>10 siswa</strong>."
+            },
+            {
+                id: 9,
+                category: "Rata-rata Penggabungan",
+                question: "Nilai rata-rata Matematika dari 8 siswa adalah 75. Jika masuk 2 siswa baru dengan nilai 85 dan 95, berapa nilai rata-rata yang baru?",
+                options: ["77", "80", "79", "78"],
+                correct: 3, // D
+                explanation: "Jumlah nilai 8 siswa awal = 8 &times; 75 = 600.<br>Jumlah nilai baru = 600 + 85 + 95 = 780.<br>Total siswa baru = 8 + 2 = 10 siswa.<br>Rata-rata baru = 780 ÷ 10 = <strong>78</strong>."
+            },
+            {
+                id: 10,
+                category: "Rata-rata Pengurangan",
+                question: "Rata-rata nilai ulangan 15 siswa adalah 70. Jika nilai milik Budi dikeluarkan, rata-rata 14 siswa tersisa menjadi 68. Berapakah nilai ulangan Budi?",
+                options: ["98", "95", "92", "100"],
+                correct: 0, // A
+                explanation: "Jumlah total nilai 15 siswa = 15 &times; 70 = 1050.<br>Jumlah total nilai 14 siswa = 14 &times; 68 = 952.<br>Nilai Budi = 1050 - 952 = <strong>98</strong>."
+            },
+            {
+                id: 11,
+                category: "Median Tabel Frekuensi",
+                question: "Tentukan <strong>Median</strong> dari tabel frekuensi nilai Matematika berikut ini!",
+                table: {
+                    headers: ["Nilai", "5", "6", "7", "8", "9"],
+                    rows: [["Frekuensi", "2", "5", "7", "4", "2"]]
+                },
+                options: ["7,5", "7", "8", "6,5"],
+                correct: 1, // B
+                explanation: "Total frekuensi (n) = 2 + 5 + 7 + 4 + 2 = 20 (Genap).<br>Data tengah berada di antara urutan ke-10 dan ke-11.<br>Frekuensi Kumulatif (fk): 2, 7, 14, 18, 20.<br>Data ke-10 dan ke-11 keduanya bernilai <strong>7</strong>. Maka Median = <strong>7</strong>."
+            },
+            {
+                id: 12,
+                category: "Menentukan Nilai X",
+                question: "Diketahui sekumpulan data: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>7, 5, 8, x, 9, 6</span>. Jika rata-rata (Mean) dari data tersebut adalah 7, tentukan nilai x!",
+                options: ["5", "6", "7", "8"],
+                correct: 2, // C
+                explanation: "Mean = (7 + 5 + 8 + x + 9 + 6) ÷ 6 = 7.<br>(35 + x) ÷ 6 = 7 &rArr; 35 + x = 42 &rArr; x = 42 - 35 = <strong>7</strong>."
+            },
+            {
+                id: 13,
+                category: "Modus Bimodal",
+                question: "Perhatikan deret angka berikut: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>5, 6, 6, 7, 8, 8, 9, 10</span>. Manakah pernyataan yang benar mengenai Modus data tersebut?",
+                options: [
+                    "Modusnya hanya 6",
+                    "Modusnya adalah 7",
+                    "Modusnya adalah 6 dan 8 (Bimodal)",
+                    "Data tidak memiliki modus"
+                ],
+                correct: 2, // C
+                explanation: "Angka 6 dan angka 8 masing-masing muncul sebanyak 2 kali (paling banyak dibanding angka lain). Maka data memiliki dua modus yaitu <strong>6 dan 8 (Bimodal)</strong>."
+            },
+            {
+                id: 14,
+                category: "Suhu & Rata-rata",
+                question: "Pencatatan suhu udara harian (&deg;C) selama satu minggu adalah: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>28, 31, 29, 32, 30, 28, 32</span>. Rata-rata suhu udara tersebut adalah...",
+                options: ["30,0 °C", "29,8 °C", "29,5 °C", "30,5 °C"],
+                correct: 0, // A
+                explanation: "Jumlah suhu = 28 + 31 + 29 + 32 + 30 + 28 + 32 = 210 °C.<br>Banyak hari (n) = 7.<br>Rata-rata = 210 ÷ 7 = <strong>30,0 °C</strong>."
+            },
+            {
+                id: 15,
+                category: "Tabel Penjualan Toko",
+                question: "Sebuah toko sepatu mencatat penjualan ukuran sepatu selama satu hari:<br>Berapakah ukuran sepatu yang paling laris (Modus)?",
+                table: {
+                    headers: ["Ukuran Sepatu", "36", "37", "38", "39", "40"],
+                    rows: [["Jumlah Terjual", "3", "7", "12", "9", "4"]]
+                },
+                options: ["12", "38", "39", "37"],
+                correct: 1, // B
+                explanation: "Ukuran sepatu paling laris berarti memiliki frekuensi penjualan tertinggi, yaitu ukuran <strong>38</strong> sebanyak 12 pasang."
+            },
+            {
+                id: 16,
+                category: "Tinggi Badan Pemain",
+                question: "Rata-rata tinggi 6 pemain utama tim basket SMP adalah 180 cm. Ketika 1 pemain cadangan masuk, rata-rata tinggi seluruhnya menjadi 182 cm. Berapakah tinggi pemain cadangan tersebut?",
+                options: ["188 cm", "190 cm", "192 cm", "194 cm"],
+                correct: 3, // D
+                explanation: "Total tinggi 6 pemain = 6 &times; 180 = 1080 cm.<br>Total tinggi 7 pemain = 7 &times; 182 = 1274 cm.<br>Tinggi pemain cadangan = 1274 - 1080 = <strong>194 cm</strong>."
+            },
+            {
+                id: 17,
+                category: "Median Variasi",
+                question: "Data terurut: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>3, 4, 6, 7, x, 10, 12, 13</span> memiliki nilai Median sama dengan 8. Tentukan nilai x!",
+                options: ["8", "8,5", "9", "10"],
+                correct: 2, // C
+                explanation: "Banyak data n = 8 (Genap). Dua data tengah di urutan ke-4 dan ke-5 adalah 7 dan x.<br>Median = (7 + x) ÷ 2 = 8 &rArr; 7 + x = 16 &rArr; x = <strong>9</strong>."
+            },
+            {
+                id: 18,
+                category: "Modus Sama Frekuensi",
+                question: "Perhatikan sekumpulan data berikut: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>12, 12, 15, 15, 18, 18</span>. Berapakah Modus dari data tersebut?",
+                options: [
+                    "Modusnya adalah 12, 15, dan 18",
+                    "Modusnya adalah 15",
+                    "Modusnya adalah 0",
+                    "Tidak ada modus (semua frekuensi sama)"
+                ],
+                correct: 0, // A
+                explanation: "Karena ketiga nilai (12, 15, 18) memiliki frekuensi yang persis sama (2 kali), data ini disebut Trimodal dengan modus <strong>12, 15, dan 18</strong>."
+            },
+            {
+                id: 19,
+                category: "Tabel Umur Anggota",
+                question: "Tabel berikut menunjukkan kelompok umur anggota klub sains:<br>Hitunglah rata-rata umur anggota klub tersebut!",
+                table: {
+                    headers: ["Umur (tahun)", "13", "14", "15", "16"],
+                    rows: [["Frekuensi", "5", "8", "4", "3"]]
+                },
+                options: ["14,10 tahun", "14,20 tahun", "14,25 tahun", "14,50 tahun"],
+                correct: 2, // C
+                explanation: "Total &Sigma;f = 20.<br>Total &Sigma;(f &middot; x) = (13&times;5) + (14&times;8) + (15&times;4) + (16&times;3) = 65 + 112 + 60 + 48 = 285.<br>Rata-rata = 285 ÷ 20 = <strong>14,25 tahun</strong>."
+            },
+            {
+                id: 20,
+                category: "Rata-rata Kelompok",
+                question: "Rata-rata nilai ulangan dari 12 siswa laki-laki adalah 72, dan rata-rata nilai dari 18 siswa perempuan adalah 77. Rata-rata gabungan seluruh siswa adalah...",
+                options: ["74,5", "75,0", "75,5", "76,0"],
+                correct: 1, // B
+                explanation: "Rata-rata gabungan = [(12 &times; 72) + (18 &times; 77)] ÷ (12 + 18)<br>= (864 + 1386) ÷ 30 = 2250 ÷ 30 = <strong>75,0</strong>."
+            },
+            {
+                id: 21,
+                category: "Sifat Transformasi Data",
+                question: "Diberikan data: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>4, 5, 6, 7, 8, 9, 10</span> dengan Mean = 7. Jika setiap nilai data dikalikan 2 kemudian ditambah 3, berapakah nilai Mean yang baru?",
+                options: ["14", "15", "16", "17"],
+                correct: 3, // D
+                explanation: "Sifat Mean: Jika setiap data dikali a dan ditambah b, maka Mean baru = (Mean lama &times; a) + b.<br>Mean baru = (7 &times; 2) + 3 = 14 + 3 = <strong>17</strong>."
+            },
+            {
+                id: 22,
+                category: "Aplikasi Posisi Median",
+                question: "Berikut adalah data usia (tahun) balita di Posyandu:<br>Berapa banyak balita yang usianya <strong>kurang dari Median</strong>?",
+                table: {
+                    headers: ["Usia (Thn)", "1", "2", "3", "4", "5"],
+                    rows: [["Frekuensi", "2", "4", "6", "5", "3"]]
+                },
+                options: ["2 balita", "6 balita", "4 balita", "12 balita"],
+                correct: 1, // B
+                explanation: "Total balita = 20. Median berada di antara urutan ke-10 & ke-11. Frekuensi kumulatif: 2, 6, 12... sehingga Median = 3 tahun.<br>Balita berusia di bawah 3 tahun adalah usia 1 thn (2 anak) + usia 2 thn (4 anak) = <strong>6 balita</strong>."
+            },
+            {
+                id: 23,
+                category: "Panen Padi",
+                question: "Hasil panen padi (ton) seorang petani selama 5 tahun berturut-turut adalah: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>12, 18, 14, 15, 16</span>. Nilai Median dari hasil panen tersebut adalah...",
+                options: ["15 ton", "14 ton", "16 ton", "18 ton"],
+                correct: 0, // A
+                explanation: "Urutkan hasil panen dari terkecil: 12, 14, <strong>15</strong>, 16, 18 (n = 5).<br>Nilai tepat di tengah (urutan ke-3) adalah <strong>15 ton</strong>."
+            },
+            {
+                id: 24,
+                category: "Target Nilai Tes",
+                question: "Rata-rata nilai 4 kali tes Matematika Anita adalah 82. Berapakah nilai yang harus diperoleh Anita pada tes ke-5 agar rata-ratanya menjadi 85?",
+                options: ["95", "93", "97", "90"],
+                correct: 2, // C
+                explanation: "Total nilai 5 kali tes yang dibutuhkan = 5 &times; 85 = 425.<br>Total nilai 4 kali tes yang sudah ada = 4 &times; 82 = 328.<br>Nilai tes ke-5 = 425 - 328 = <strong>97</strong>."
+            },
+            {
+                id: 25,
+                category: "Teori Median",
+                question: "Manakah di antara pernyataan berikut yang SELALU BENAR mengenai Median?",
+                options: [
+                    "Median pasti nilainya sama dengan Mean",
+                    "Median hanya bisa dihitung jika jumlah data genap",
+                    "Median tidak dipengaruhi oleh adanya nilai data ekstrem yang sangat besar/kecil",
+                    "Median adalah nilai yang memiliki frekuensi paling banyak"
+                ],
+                correct: 2, // C
+                explanation: "Keunggulan utama <strong>Median</strong> adalah nilainya bersifat resisten dan <strong>tidak terpengaruh oleh pencilan/nilai ekstrem</strong>."
+            },
+            {
+                id: 26,
+                category: "Persentase Soal Tabel",
+                question: "Perhatikan tabel kuis di bawah ini:<br>Berapa persentase siswa yang mendapat nilai <strong>di atas Modus</strong>?",
+                table: {
+                    headers: ["Skor", "50", "60", "70", "80", "90"],
+                    rows: [["Frekuensi", "3", "7", "10", "6", "4"]]
+                },
+                options: ["20%", "25%", "30%", "33,3%"],
+                correct: 3, // D
+                explanation: "Modus = Skor 70 (frekuensi terbesar = 10).<br>Siswa di atas skor 70 = skor 80 (6 orang) + skor 90 (4 orang) = 10 siswa.<br>Total siswa = 30.<br>Persentase = (10 ÷ 30) &times; 100% = <strong>33,3%</strong>."
+            },
+            {
+                id: 27,
+                category: "Menentukan Angka Terbesar",
+                question: "Suatu data terdiri dari 5 bilangan bulat: <span class='font-mono bg-slate-100 px-2 py-0.5 rounded font-bold text-indigo-700'>6, 8, 10, x, y</span>. Jika Rata-ratanya 9 dan Modusnya 8, berapakah nilai terbesar dari pasangan x dan y?",
+                options: ["11", "13", "14", "15"],
+                correct: 1, // B
+                explanation: "Karena Modus = 8, angka 8 harus muncul minimal 2 kali. Berarti salah satu dari x atau y bernilai 8 (misal x = 8).<br>Total nilai (5 &times; 9) = 45.<br>6 + 8 + 10 + 8 + y = 45 &rArr; 32 + y = 45 &rArr; y = <strong>13</strong>."
+            },
+            {
+                id: 28,
+                category: "Rata-rata Gabungan Dua Kelompok",
+                question: "Kelompok A terdiri dari 10 siswa dengan rata-rata nilai 70, dan Kelompok B terdiri dari 15 siswa dengan rata-rata nilai 80. Rata-rata nilai gabungan kedua kelompok tersebut adalah...",
+                options: ["76", "75", "77", "74"],
+                correct: 0, // A
+                explanation: "Total nilai A = 10 &times; 70 = 700.<br>Total nilai B = 15 &times; 80 = 1200.<br>Total gabungan = 1900 ÷ (10 + 15) = 1900 ÷ 25 = <strong>76</strong>."
+            },
+            {
+                id: 29,
+                category: "Data Kualitatif / Modus",
+                question: "Tabel berikut mencatat golongan darah dari 50 siswa kelas 8 SMP:<br>Modus dari golongan darah siswa tersebut adalah...",
+                table: {
+                    headers: ["Gol. Darah", "A", "B", "AB", "O"],
+                    rows: [["Banyak Siswa", "12", "15", "5", "18"]]
+                },
+                options: ["Golongan A", "Golongan B", "Golongan O", "Golongan AB"],
+                correct: 2, // C
+                explanation: "Jumlah siswa terbanyak adalah pemilik golongan darah <strong>O</strong> yaitu sebanyak 18 orang."
+            },
+            {
+                id: 30,
+                category: "Rata-rata Setelah Penambahan Data",
+                question: "Sebuah data awal memiliki rata-rata 14 untuk 12 buah bilangan. Jika ditambahkan satu data baru bernilai 27, berapa nilai rata-rata baru dari data tersebut?",
+                options: ["14,2", "14,5", "14,8", "15,0"],
+                correct: 3, // D
+                explanation: "Jumlah nilai 12 data awal = 12 &times; 14 = 168.<br>Jumlah nilai baru = 168 + 27 = 195.<br>Banyak data baru = 12 + 1 = 13.<br>Rata-rata baru = 195 ÷ 13 = <strong>15,0</strong>."
+            }
+        ];
+
+        const STORAGE_KEY = "quiz_statistika_smp8_v1";
+
+        // Global Application State
+        let currentIdx = 0;
+        let userAnswers = new Array(quizQuestions.length).fill(null);
+        let activeFilter = "all";
+
+        /**
+         * Save state to localStorage for offline / refresh resilience
+         */
+        function saveToStorage() {
+            try {
+                const state = {
+                    currentIdx: currentIdx,
+                    userAnswers: userAnswers,
+                    lastSaved: Date.now()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.warn("localStorage error:", e);
+            }
+        }
+
+        /**
+         * Load saved state on app launch
+         */
+        function loadFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.userAnswers) && parsed.userAnswers.length === quizQuestions.length) {
+                        userAnswers = parsed.userAnswers;
+                        currentIdx = typeof parsed.currentIdx === 'number' ? parsed.currentIdx : 0;
+                        showToast();
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to load saved state:", e);
+            }
+        }
+
+        /**
+         * Render active question card
+         */
+        function renderQuestion() {
+            const q = quizQuestions[currentIdx];
+            const answerState = userAnswers[currentIdx];
+
+            // Badge updates
+            document.getElementById('q-number-badge').innerText = `Soal #${q.id} dari 30`;
+            document.getElementById('q-category-badge').innerText = q.category;
+            document.getElementById('q-text').innerHTML = q.question;
+
+            // Table rendering
+            const tableBox = document.getElementById('q-table-container');
+            if (q.table) {
+                let tableHtml = `<table class="w-full text-xs md:text-sm text-center border-collapse bg-white rounded-lg overflow-hidden border border-slate-200">`;
+                tableHtml += `<thead class="bg-indigo-900 text-white font-semibold"><tr>`;
+                q.table.headers.forEach(h => {
+                    tableHtml += `<th class="p-2 border border-indigo-800">${h}</th>`;
+                });
+                tableHtml += `</tr></thead><tbody>`;
+                q.table.rows.forEach(r => {
+                    tableHtml += `<tr class="divide-x divide-slate-200">`;
+                    r.forEach(cell => {
+                        tableHtml += `<td class="p-2 border-t border-slate-200 font-medium">${cell}</td>`;
+                    });
+                    tableHtml += `</tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                tableBox.innerHTML = tableHtml;
+                tableBox.classList.remove('hidden');
+            } else {
+                tableBox.classList.add('hidden');
+                tableBox.innerHTML = '';
+            }
+
+            // Options rendering
+            const optionsBox = document.getElementById('options-container');
+            optionsBox.innerHTML = '';
+
+            const isAnswered = answerState !== null;
+            
+            q.options.forEach((optText, optIdx) => {
+                const letter = String.fromCharCode(65 + optIdx); // A, B, C, D
+                const btn = document.createElement('button');
+                btn.onclick = () => selectAnswer(optIdx);
+                
+                let btnClasses = "w-full text-left p-3.5 md:p-4 rounded-xl border text-xs md:text-sm font-medium transition-all duration-200 flex items-center justify-between group shadow-sm ";
+                
+                if (!isAnswered) {
+                    btnClasses += "bg-white hover:bg-indigo-50/60 border-slate-200 text-slate-700 hover:border-indigo-300";
+                } else {
+                    btn.disabled = true; // Disable after answering
+                    if (optIdx === q.correct) {
+                        btnClasses += "bg-emerald-50 border-emerald-500 text-emerald-900 font-semibold ring-2 ring-emerald-400/50";
+                    } else if (optIdx === answerState) {
+                        btnClasses += "bg-rose-50 border-rose-500 text-rose-900 font-semibold ring-2 ring-rose-400/50";
+                    } else {
+                        btnClasses += "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                    }
+                }
+
+                btn.className = btnClasses;
+
+                let iconHtml = `<span class="w-7 h-7 rounded-lg border border-slate-300 group-hover:border-indigo-500 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono transition">${letter}</span>`;
+                
+                if (isAnswered) {
+                    if (optIdx === q.correct) {
+                        iconHtml = `<span class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0"><i class="fa-solid fa-check"></i></span>`;
+                    } else if (optIdx === answerState) {
+                        iconHtml = `<span class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold text-xs shrink-0"><i class="fa-solid fa-xmark"></i></span>`;
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        ${iconHtml}
+                        <span class="leading-relaxed">${optText}</span>
+                    </div>
+                `;
+
+                optionsBox.appendChild(btn);
+            });
+
+            // Explanation box
+            const expBox = document.getElementById('explanation-box');
+            if (isAnswered) {
+                document.getElementById('explanation-text').innerHTML = q.explanation;
+                expBox.classList.remove('hidden');
+                document.getElementById('q-status-text').innerHTML = answerState === q.correct 
+                    ? `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> Jawaban Benar!</span>`
+                    : `<span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-xmark"></i> Jawaban Kurang Tepat</span>`;
+            } else {
+                expBox.classList.add('hidden');
+                document.getElementById('q-status-text').innerHTML = `<i class="fa-regular fa-clock"></i> Pilih salah satu jawaban`;
+            }
+
+            // Navigation Button states
+            document.getElementById('btn-prev').disabled = currentIdx === 0;
+            document.getElementById('btn-next').disabled = currentIdx === quizQuestions.length - 1;
+
+            updateStats();
+            renderGrid();
+        }
+
+        /**
+         * Handle answer selection
+         */
+        function selectAnswer(optIdx) {
+            if (userAnswers[currentIdx] !== null) return; // Prevent double answer
+            userAnswers[currentIdx] = optIdx;
+            saveToStorage();
+            renderQuestion();
+        }
+
+        /**
+         * Navigation functions
+         */
+        function nextQuestion() {
+            if (currentIdx < quizQuestions.length - 1) {
+                currentIdx++;
+                saveToStorage();
+                renderQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIdx > 0) {
+                currentIdx--;
+                saveToStorage();
+                renderQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            currentIdx = index;
+            saveToStorage();
+            renderQuestion();
+        }
+
+        /**
+         * Render sidebar question grid
+         */
+        function renderGrid() {
+            const gridContainer = document.getElementById('question-grid');
+            gridContainer.innerHTML = '';
+
+            let count = 0;
+
+            quizQuestions.forEach((q, idx) => {
+                const ans = userAnswers[idx];
+                const isCurrent = idx === currentIdx;
+
+                // Filter logic
+                if (activeFilter === 'done' && ans === null) return;
+                if (activeFilter === 'empty' && ans !== null) return;
+
+                count++;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => jumpToQuestion(idx);
+
+                let btnClass = "h-10 rounded-xl font-mono text-xs font-bold transition flex items-center justify-center relative border ";
+
+                if (isCurrent) {
+                    btnClass += "ring-2 ring-indigo-600 ring-offset-2 border-indigo-600 ";
+                }
+
+                if (ans === null) {
+                    btnClass += "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200";
+                } else if (ans === q.correct) {
+                    btnClass += "bg-emerald-500 border-emerald-600 text-white shadow-sm";
+                } else {
+                    btnClass += "bg-rose-500 border-rose-600 text-white shadow-sm";
+                }
+
+                btn.className = btnClass;
+                btn.innerText = idx + 1;
+                gridContainer.appendChild(btn);
+            });
+
+            document.getElementById('grid-status-badge').innerText = `${count} Soal`;
+        }
+
+        /**
+         * Filter sidebar grid
+         */
+        function filterGrid(type) {
+            activeFilter = type;
+            ['all', 'done', 'empty'].forEach(t => {
+                const btn = document.getElementById(`btn-filter-${t}`);
+                if (t === type) {
+                    btn.className = "py-1 rounded-lg bg-white shadow-sm text-indigo-700 font-bold";
+                } else {
+                    btn.className = "py-1 rounded-lg text-slate-600 hover:text-slate-900";
+                }
+            });
+            renderGrid();
+        }
+
+        /**
+         * Update stats banner and progress bar
+         */
+        function updateStats() {
+            let answeredCount = 0;
+            let correctCount = 0;
+
+            userAnswers.forEach((ans, idx) => {
+                if (ans !== null) {
+                    answeredCount++;
+                    if (ans === quizQuestions[idx].correct) {
+                        correctCount++;
+                    }
+                }
+            });
+
+            // Score formula: (Correct / 30) * 100
+            const score = Math.round((correctCount / quizQuestions.length) * 100);
+
+            document.getElementById('stat-answered').innerText = `${answeredCount} / ${quizQuestions.length}`;
+            document.getElementById('stat-score').innerText = score;
+
+            const progressPct = (answeredCount / quizQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPct}%`;
+        }
+
+        /**
+         * Custom Modal & Reset Logic
+         */
+        function showResetModal() {
+            document.getElementById('modal-reset').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('modal-reset').classList.add('hidden');
+        }
+
+        function confirmResetQuiz() {
+            userAnswers = new Array(quizQuestions.length).fill(null);
+            currentIdx = 0;
+            saveToStorage();
+            closeResetModal();
+            closeResultModal();
+            renderQuestion();
+        }
+
+        /**
+         * Finish Quiz Summary Modal
+         */
+        function finishQuizConfirmation() {
+            let correct = 0;
+            let wrong = 0;
+            let empty = 0;
+
+            userAnswers.forEach((ans, idx) => {
+                if (ans === null) {
+                    empty++;
+                } else if (ans === quizQuestions[idx].correct) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            });
+
+            const totalScore = Math.round((correct / quizQuestions.length) * 100);
+
+            document.getElementById('final-score-val').innerText = totalScore;
+            document.getElementById('final-correct').innerText = correct;
+            document.getElementById('final-wrong').innerText = wrong;
+            document.getElementById('final-empty').innerText = empty;
+
+            let badgeText = "";
+            if (totalScore >= 90) {
+                badgeText = "🏆 Luar Biasa! Kamu Sangat Menguasai Statistika!";
+            } else if (totalScore >= 75) {
+                badgeText = "👍 Bagus Sekali! Pemahaman Materi Kamu Sudah Baik!";
+            } else if (totalScore >= 60) {
+                badgeText = "📚 Cukup Baik. Tingkatkan Lagi Latihan Soal!";
+            } else {
+                badgeText = "💪 Jangan Patah Semangat! Pelajari Kembali Materi Mean, Median & Modus!";
+            }
+
+            document.getElementById('final-badge').innerText = badgeText;
+            document.getElementById('modal-result').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('modal-result').classList.add('hidden');
+        }
+
+        /**
+         * Mobile sidebar toggle
+         */
+        function toggleGridMobile() {
+            const sidebar = document.getElementById('grid-sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        /**
+         * Toast alerts
+         */
+        function showToast() {
+            const toast = document.getElementById('toast-notify');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                closeToast();
+            }, 5000);
+        }
+
+        function closeToast() {
+            document.getElementById('toast-notify').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            loadFromStorage();
+            renderQuestion();
+        };
+    </script>
+</body>
+</html>
